@@ -21,6 +21,9 @@ namespace Speech
             public float Speed { get; set; } = 1;
             public float Pitch { get; set; } = 1;
             public float PitchRange { get; set; } = 1;
+            public float Joy { get; set; } = 0;
+            public float Anger { get; set; } = 0;
+            public float Sadness { get; set; } = 0;
             public bool IsPauseEnabled { get; set; } = true;
             public int MiddlePause { get; set; } = 150;
             public int LongPause { get; set; } = 370;
@@ -131,7 +134,9 @@ namespace Speech
         /// </summary>
         public void Activate()
         {
-            string path = Path.Combine(Path.GetDirectoryName(AIVOICEPath), "AI.Talk.Editor.Api.dll");
+            string path =
+                Environment.ExpandEnvironmentVariables("%ProgramW6432%")
+                + @"\AI\AIVoice\AIVoiceEditor\AI.Talk.Editor.Api.dll";
             Assembly assembly = Assembly.LoadFrom(path);
             Type type = assembly.GetType("AI.Talk.Editor.Api.TtsControl");
             _ttsControl = Activator.CreateInstance(type, new object[] { });
@@ -296,6 +301,65 @@ namespace Speech
         public float GetPitchRange()
         {
             return GetMaster().PitchRange;
+        }
+        public float GetJoy()
+        {
+            return 1f;
+        }
+        public void SetJoy(float value)
+        {
+            // 何もしない
+        }
+        public float GetAnger()
+        {
+            return 1f;
+        }
+        public void SetAnger(float value)
+        {
+            // 何もしない
+        }
+        public float GetSadness()
+        {
+            return 1f;
+        }
+        public void SetSadness(float value)
+        {
+            // 何もしない
+        }
+
+
+        public SoundStream Export(string text)
+        {
+            _ttsControl.Text = text;
+
+            var filePath = Path.Combine(Path.GetTempPath(), $"{this.GetType().Name}_{(uint)text.GetHashCode()}.wav");
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            _ttsControl.SaveAudioToFile(filePath);
+            if (File.Exists(filePath))
+            {
+                return SoundStream.Open(filePath);
+            }
+            return null;
+        }
+
+        public string ExportFilePath(string text)
+        {
+            _ttsControl.Text = text;
+
+            var filePath = Path.Combine(Path.GetTempPath(), $"{this.GetType().Name}_{(uint)text.GetHashCode()}.wav");
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            _ttsControl.SaveAudioToFile(filePath);
+            if (File.Exists(filePath))
+            {
+                return filePath;
+            }
+            return null;
         }
 
         #region IDisposable Support

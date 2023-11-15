@@ -143,6 +143,18 @@ namespace SpeechWebServer
                     {
                         ep.Speed = Convert.ToSingle(queryString["speed"]);
                     }
+                    if (queryString["joy"] != null)
+                    {
+                        ep.Joy = Convert.ToSingle(queryString["joy"]);
+                    }
+                    if (queryString["anger"] != null)
+                    {
+                        ep.Anger = Convert.ToSingle(queryString["anger"]);
+                    }
+                    if (queryString["sadness"] != null)
+                    {
+                        ep.Sadness = Convert.ToSingle(queryString["sadness"]);
+                    }
                     if (queryString["engine"] != null)
                     {
                         engineName = queryString["engine"];
@@ -158,7 +170,59 @@ namespace SpeechWebServer
                         whisper = true;
                     }
 
+                    bool export = false;
+                    if (queryString["export"] != null)
+                    {
+                        bool.TryParse(queryString["export"], out export);
+                    }
                     Console.WriteLine("=> " + context.Request.RemoteEndPoint.Address);
+                    if (export)
+                    {
+                        try
+                        {
+                            using (var result = ExportMode(voiceName, engineName, voiceText, location, ep))
+                            {
+                                response.StatusCode = 200;
+                                response.ContentType = "audio/wav";
+                                result.CopyTo(response.OutputStream);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = 500;
+                            throw new Exception("Error", ex);
+                        }
+                        continue;
+                    }
+
+                    bool whisper_export = false;
+                    if (queryString["whisper_export"] != null)
+                    {
+                        if (queryString["whisper_export"].Trim() != "")
+                        {
+                            rate = Convert.ToSingle(queryString["whisper_export"]);
+                        }
+                        whisper_export = true;
+                    }
+                    Console.WriteLine("=> " + context.Request.RemoteEndPoint.Address);
+                    if (whisper_export)
+                    {
+                        try
+                        {
+                            using (var result = WhisperExportMode(voiceName, engineName, voiceText, location, ep, rate))
+                            {
+                                response.StatusCode = 200;
+                                response.ContentType = "audio/wav";
+                                result.CopyTo(response.OutputStream);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = 500;
+                            throw new Exception("Error", ex);
+                        }
+                        continue;
+                    }
 
                     response.StatusCode = 200;
                     response.ContentType = "text/plain; charset=utf-8";
@@ -199,6 +263,7 @@ namespace SpeechWebServer
 
         private static ISpeechController ActivateInstance(string libraryName, string engineName, string text, string location, EngineParameters ep)
         {
+            var engines = SpeechController.GetAllSpeechEngine();
             ISpeechController engine = engineName == "" ?
                 SpeechController.GetInstance(libraryName) : SpeechController.GetInstance(libraryName, engineName);
             if (engine == null)
@@ -231,7 +296,33 @@ namespace SpeechWebServer
             {
                 engine.SetPitchRange(ep.PitchRange);
             }
+            if (ep.Joy >= 0 && ep.Joy <=1)
+            {
+                engine.SetJoy(ep.Joy);
+            }
+            if (ep.Anger >= 0 && ep.Anger <= 1)
+            {
+                engine.SetAnger(ep.Anger);
+            }
+            if (ep.Sadness >= 0 && ep.Sadness <= 1)
+            {
+                engine.SetSadness(ep.Sadness);
+            }
             return engine;
+        }
+
+        private static Stream ExportMode(string libraryName, string engineName, string text, string location, EngineParameters ep)
+        {
+            var engine = ActivateInstance(libraryName, engineName, text, location, ep);
+            if (engine == null)
+            {
+                return null;
+            }
+            engine.Finished += (s, a) =>
+            {
+                engine.Dispose();
+            };
+            return engine.Export(text);
         }
 
         private static void OneShotPlayMode(string libraryName, string engineName, string text, string location, EngineParameters ep)
@@ -291,6 +382,32 @@ namespace SpeechWebServer
             //// 変換した音声を再生
             SoundPlayer sp = new SoundPlayer();
             sp.Play(whisperFile);
+        }
+
+        private static Stream WhisperExportMode(string libraryName, string engineName, string text, string location, EngineParameters ep, float rate)
+        {
+            var engine = ActivateInstance(libraryName, engineName, text, location, ep);
+            if (engine == null)
+            {
+                return null;
+            }
+            engine.Finished += (s, a) =>
+            {
+                engine.Dispose();
+            };
+            string tempFile = engine.ExportFilePath(text);
+            string whisperFile = "whisper.wav";
+            tempFile = Path.GetFullPath(tempFile);
+            // ささやき声に変換
+            Whisper whisper = new Whisper();
+            whisper.Rate = rate;
+            Wave wave = new Wave();
+            //ここに保存したwavを読ませる
+            wave.Read(tempFile);
+            whisper.Convert(wave);
+            wave.Write(whisperFile, wave.Data);
+            //whisper.wavをストリーム型で返却する
+            return SoundStream.Open(whisperFile);
         }
         private static void ChangeSpeaker(string name)
         {

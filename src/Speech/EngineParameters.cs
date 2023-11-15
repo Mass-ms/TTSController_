@@ -12,5 +12,8 @@ namespace Speech
         public float PitchRange { get; set; } = -1;
         public float Volume { get; set; } = -1;
         public float Speed { get; set; } = -1;
+        public float Joy { get; set; } = -1;
+        public float Anger { get; set; } = -1;
+        public float Sadness { get; set; } = -1;
     }
 }

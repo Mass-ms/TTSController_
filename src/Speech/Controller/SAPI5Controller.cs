@@ -176,6 +176,47 @@ namespace Speech
             return 1f;
         }
 
+        public float GetJoy()
+        {
+            return 1f;
+        }
+        public void SetJoy(float value)
+        {
+            // 何もしない
+        }
+        public float GetAnger()
+        {
+            return 1f;
+        }
+        public void SetAnger(float value)
+        {
+            // 何もしない
+        }
+        public float GetSadness()
+        {
+            return 1f;
+        }
+        public void SetSadness(float value)
+        {
+            // 何もしない
+        }
+
+
+        public SoundStream Export(string text)
+        {
+            var ms = new MemoryStream();
+            synthesizer.SetOutputToWaveStream(ms);
+            synthesizer.Speak(text);
+            synthesizer.SetOutputToDefaultAudioDevice();
+            ms.Position = 0;
+            return new SoundStream(ms);
+        }
+        //TODO 実装を考える
+        public string ExportFilePath(string text)
+        {
+            throw new NotImplementedException();
+        }
+
         #region IDisposable Support
         private bool disposedValue = false;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Speech
 {
@@ -75,7 +76,21 @@ namespace Speech
         /// アプリケーションが起動中かどうかを取得します
         /// </summary>
         /// <returns>起動していれば true </returns>
+        float GetJoy();
+        void SetJoy(float value);
+        float GetAnger();
+        void SetAnger(float value);
+        float GetSadness();
+        void SetSadness(float value);
         bool IsActive();
+        /// <summary>
+        /// 指定した文字列を合成した音声を取得します
+        /// </summary>
+        /// <param name="text">合成する文字列</param>
+        /// <returns>出力された音声の Stream</returns>
+        SoundStream Export(string text);
+
+        string ExportFilePath(string text);
 
     }
 }

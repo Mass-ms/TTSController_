@@ -209,7 +209,31 @@ namespace Speech
         {
             return GetEffect(EffectType.PitchRange);
         }
-        
+        public float GetJoy()
+        {
+            return 1f;
+        }
+        public void SetJoy(float value)
+        {
+            // 何もしない
+        }
+        public float GetAnger()
+        {
+            return 1f;
+        }
+        public void SetAnger(float value)
+        {
+            // 何もしない
+        }
+        public float GetSadness()
+        {
+            return 1f;
+        }
+        public void SetSadness(float value)
+        {
+            // 何もしない
+        }
+
         private void SetEffect(EffectType t, float value)
         {
             ChangeToVoiceEffect();
@@ -252,6 +276,16 @@ namespace Speech
                 SendMessage(_root.Handle, WM_SYSCOMMAND,
                     new IntPtr(SC_RESTORE), IntPtr.Zero);
             }
+        }
+
+        public SoundStream Export(string text)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ExportFilePath(string text)
+        {
+            throw new NotImplementedException();
         }
 
         #region IDisposable Support

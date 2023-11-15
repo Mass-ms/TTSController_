@@ -205,6 +205,30 @@ namespace Speech
         {
             return _talker.ToneScale / 50f;
         }
+        public float GetJoy()
+        {
+            return 1f;
+        }
+        public void SetJoy(float value)
+        {
+            // 何もしない
+        }
+        public float GetAnger()
+        {
+            return 1f;
+        }
+        public void SetAnger(float value)
+        {
+            // 何もしない
+        }
+        public float GetSadness()
+        {
+            return 1f;
+        }
+        public void SetSadness(float value)
+        {
+            // 何もしない
+        }
 
         /// <summary>
         /// 声色を設定します
@@ -256,6 +280,25 @@ namespace Speech
         public uint GetVoiceQuality()
         {
             return _talker.Alpha;
+        }
+ 
+        public SoundStream Export(string text)
+        {
+            string tempFile = Path.GetTempFileName();
+            if (_talker.OutputWaveToFile(text, tempFile))
+            {
+                return SoundStream.Open(tempFile);
+            }
+            return null;
+        }
+        public string ExportFilePath(string text)
+        {
+            string tempFile = Path.GetTempFileName();
+            if (_talker.OutputWaveToFile(text, tempFile))
+            {
+                return tempFile;
+            }
+            return null;
         }
 
         #region IDisposable Support
